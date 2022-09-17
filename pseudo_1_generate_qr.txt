@@ -1,0 +1,38 @@
+PROGRAM GenerateQR
+
+IMPORT MD5
+IMPORT DatabaseConnector
+IMPORT GenerateQR
+
+FUNCTION GetAvailableMeja()
+    STORE "query" with string "SELECT meja.nomor_meja FROM meja WHERE meja.nomor_meja NOT IN (SELECT nomor_meja FROM order WHERE completed = FALSE)"
+    STORE "database_url" with string "http://localhost:3306"
+    STORE "database_user" with string "root"
+    STORE "database_password" with string ""
+    STORE "database_name" with string "self_order"
+
+    STORE "database_connection" with DatabaseConnector(database_url, database_user, database_password, database_name)
+
+    RETURN database_connection.ExecuteQuery(database_connection, query)
+
+STORE "available_meja" with GetAvailableMeja()
+
+READ AND WRITE "nomor_meja" with number
+READ AND WRITE "nama" with number
+
+FUNCTION InsertOrder(nomor_meja, nama)
+    STORE "query" with string "INSERT INTO order(nomor_meja, nama) VALUES(" + nomor_meja + ", " + nama + ") RETURNING order_id;"
+    STORE "database_url" with string "http://localhost:3306"
+    STORE "database_user" with string "root"
+    STORE "database_password" with string ""
+    STORE "database_name" with string "self_order"
+
+    STORE "database_connection" with DatabaseConnector(database_url, database_user, database_password, database_name)
+
+    RETURN database_connection.ExecuteQuery(database_connection, query)
+
+STORE "order_id" with InsertOrder(nomor_meja, nama)
+STORE "order_id_md5" with MD5(order_id)
+STORE "url" with string "http://localhost/order?id=" + order_id_md5
+STORE "QR_base64" with GenerateQR(url)
+PRINT QR_base64
