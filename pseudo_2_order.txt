@@ -1,0 +1,74 @@
+PROGRAM Order
+
+IMPORT MD5
+IMPORT DatabaseConnector
+
+STORE "checkout" with boolean FALSE
+
+FUNCTION GetOrderID()
+    READ "url" from URL
+    STORE "order_id_md5" from url.split("order_id?")[1]
+
+    STORE "query" with string "SELECT order_id FROM order WHERE md5 = " + order_id_md5
+    STORE "database_url" with string "http://localhost:3306"
+    STORE "database_user" with string "root"
+    STORE "database_password" with string ""
+    STORE "database_name" with string "self_order"
+
+    STORE "database_connection" with DatabaseConnector(database_url, database_user, database_password, database_name)
+
+    STORE "order_id" with database_connection.ExecuteQuery(database_connection, query)
+
+    IF "order_id"
+        RETURN "order_id"
+    ELSE
+        RETURN NULL
+
+FUNCTION GetAvailableMenu()
+    STORE "query" with string "SELECT * FROM menu WHERE quantity > 0"
+    STORE "database_url" with string "http://localhost:3306"
+    STORE "database_user" with string "root"
+    STORE "database_password" with string ""
+    STORE "database_name" with string "self_order"
+
+
+    STORE "menu" with database_connection.ExecuteQuery(database_connection, query)
+
+    RETURN "menu"
+
+FUNCTION AddItem(order_id, order)
+    STORE "database_url" with string "http://localhost:3306"
+    STORE "database_user" with string "root"
+    STORE "database_password" with string ""
+    STORE "database_name" with string "self_order"
+
+    STORE "database_connection" with DatabaseConnector(database_url, database_user, database_password, database_name)
+    WHILE length(order) > 0
+        STORE "item_id" with number "order"["0"]["0"]
+        STORE "quantity" with number "order"["0"]["1"]
+
+        STORE "query" with string "INSERT INTO order_detail(order_id, item_id, quantity) VALUES("order_id", "item_id", "order_id");"
+        database_connection.ExecuteQuery(database_connection, query)
+
+        DELETE "order"["0"]
+
+
+
+STORE "order_id" with GetOrderID()
+
+IF NOT("order_id")
+    PRINT "Invalid Order"
+    EXIT
+
+STORE "menu" with GetAvailableMenu()
+
+STORE "order" with array
+
+WHILE NOT(checkout)
+    READ AND WRITE "item" with number
+    READ AND WRITE "quantity" with number
+    APPEND "order" with ("item", "quantity")
+
+AddItem(order_id, order)
+
+PRINT "Your Order is being processed"
