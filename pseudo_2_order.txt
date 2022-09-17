@@ -71,4 +71,4 @@ WHILE NOT(checkout)
 
 AddItem(order_id, order)
 
-PRINT "Your Order is being processed"
+PRINT "Your Order(s) are being processed"
